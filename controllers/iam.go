@@ -22,8 +22,7 @@ func DeleteRole(ctx context.Context, roleName string) error {
 	svc := iam.New(sess)
 
 	// Delete role
-	_, err := svc.DeleteRole(&iam.DeleteRoleInput{RoleName: aws.String(roleName)})
-	if err != nil {
+	if _, err := svc.DeleteRole(&iam.DeleteRoleInput{RoleName: aws.String(roleName)}); err != nil {
 		log.Error(err, "Error deleting role")
 		return err
 	}
@@ -45,8 +44,7 @@ func CreateRole(ctx context.Context, iamRole *iamv1alpha1.IamRole) error {
 		RoleName: aws.String(iamRole.Name),
 	}
 
-	_, err := svc.GetRole(input)
-	if err != nil {
+	if _, err := svc.GetRole(input); err != nil {
 		log.Info("Creating IAM role on AWS")
 
 		awsAccountID := os.Getenv("AWS_ACCOUNT_ID")
@@ -76,8 +74,7 @@ func CreateRole(ctx context.Context, iamRole *iamv1alpha1.IamRole) error {
 			RoleName:                 aws.String(iamRole.Name),
 		}
 
-		_, err = svc.CreateRole(params)
-		if err != nil {
+		if _, err = svc.CreateRole(params); err != nil {
 			log.Error(err, "Error creating role on AWS")
 			return err
 		}

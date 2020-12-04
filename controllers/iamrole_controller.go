@@ -51,8 +51,7 @@ func (r *IamRoleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// Fetch the IamRole instance
 	iamRole := &iamv1alpha1.IamRole{}
 
-	err := r.Get(ctx, req.NamespacedName, iamRole)
-	if err != nil {
+	if err := r.Get(ctx, req.NamespacedName, iamRole); err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("IamRole resource not found. Ignoring since object must be deleted.")
 			return ctrl.Result{}, nil
@@ -62,17 +61,16 @@ func (r *IamRoleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// Check if the CR is marked to be deleted
-	isIamRoleMarkedToBeDeleted := iamRole.GetDeletionTimestamp() != nil
-	if isIamRoleMarkedToBeDeleted {
+	if iamRole.GetDeletionTimestamp() != nil {
 		log.Info("IamRole marked for deletion. Running finalizers.")
 		if contains(iamRole.GetFinalizers(), iamRoleFinalizer) {
 			// Firt delete role
-			if DeleteRole(ctx, iamRole.ObjectMeta.Name) != nil {
+			if err := DeleteRole(ctx, iamRole.ObjectMeta.Name); err != nil {
 				return ctrl.Result{}, err
 			}
 			// Remove finalizer once the finalizer logic has run
 			controllerutil.RemoveFinalizer(iamRole, iamRoleFinalizer)
-			if r.Update(ctx, iamRole) != nil {
+			if err := r.Update(ctx, iamRole); err != nil {
 				// If the object update fails, requeue
 				return ctrl.Result{}, err
 			}
@@ -84,16 +82,14 @@ func (r *IamRoleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// Add Finalizers to the CR
 	if !contains(iamRole.GetFinalizers(), iamRoleFinalizer) {
 		controllerutil.AddFinalizer(iamRole, iamRoleFinalizer)
-		err := r.Update(ctx, iamRole)
-		if err != nil {
+		if err := r.Update(ctx, iamRole); err != nil {
 			log.Error(err, "Failed to update IamRole with finalizer")
 			return ctrl.Result{}, err
 		}
 	}
 
 	// Create role if not exists
-	err = CreateRole(ctx, iamRole)
-	if err != nil {
+	if err := CreateRole(ctx, iamRole); err != nil {
 		log.Error(err, "Failed to create IamRole")
 		return ctrl.Result{}, err
 	}
