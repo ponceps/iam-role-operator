@@ -5,20 +5,15 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/iam"
 	iamv1alpha1 "github.com/iclinic/iam-role-operator/api/v1alpha1"
 	"github.com/prometheus/common/log"
 )
 
+var svc = iam.New(awsSession)
+
 // DeleteRole deletes AWS IAM Role
 func DeleteRole(ctx context.Context, roleName string) error {
-	sess := session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(awsRegion)},
-	))
-
-	svc := iam.New(sess)
-
 	// Delete role
 	if _, err := svc.DeleteRole(&iam.DeleteRoleInput{RoleName: aws.String(roleName)}); err != nil {
 		log.Error(err, "Error deleting role")
@@ -32,12 +27,6 @@ func DeleteRole(ctx context.Context, roleName string) error {
 
 // CreateRole creates AWS IAM Role
 func CreateRole(ctx context.Context, iamRole *iamv1alpha1.IamRole) error {
-	sess := session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(awsRegion)},
-	))
-
-	svc := iam.New(sess)
-
 	input := &iam.GetRoleInput{
 		RoleName: aws.String(iamRole.Name),
 	}
