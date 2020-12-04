@@ -1,0 +1,20 @@
+# permissions for end users to view iamroles.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: iamrole-viewer-role
+rules:
+- apiGroups:
+  - iam.iclinic.com.br
+  resources:
+  - iamroles
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - iam.iclinic.com.br
+  resources:
+  - iamroles/status
+  verbs:
+  - get
