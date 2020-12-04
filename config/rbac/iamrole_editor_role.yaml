@@ -1,0 +1,24 @@
+# permissions for end users to edit iamroles.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: iamrole-editor-role
+rules:
+- apiGroups:
+  - iam.iclinic.com.br
+  resources:
+  - iamroles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - iam.iclinic.com.br
+  resources:
+  - iamroles/status
+  verbs:
+  - get
