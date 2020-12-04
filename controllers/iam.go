@@ -28,7 +28,7 @@ func DeleteRole(ctx context.Context, roleName string) error {
 		return err
 	}
 
-	log.Info("Role delete successfully")
+	log.Info("Role deleted successfully")
 
 	return nil
 }
@@ -47,7 +47,7 @@ func CreateRole(ctx context.Context, iamRole *iamv1alpha1.IamRole) error {
 
 	_, err := svc.GetRole(input)
 	if err != nil {
-		log.Info("Creating AWS Role")
+		log.Info("Creating IAM role on AWS")
 
 		awsAccountID := os.Getenv("AWS_ACCOUNT_ID")
 		openIDIssuer := strings.TrimPrefix(os.Getenv("OPENID_ISSUER_URL"), "https://")

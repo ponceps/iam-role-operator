@@ -66,7 +66,7 @@ func (r *IamRoleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if isIamRoleMarkedToBeDeleted {
 		log.Info("IamRole marked for deletion. Running finalizers.")
 		if contains(iamRole.GetFinalizers(), iamRoleFinalizer) {
-			// Firt remove the Policy and them remove the role
+			// Firt delete role
 			if DeleteRole(ctx, iamRole.ObjectMeta.Name) != nil {
 				return ctrl.Result{}, err
 			}
@@ -86,7 +86,7 @@ func (r *IamRoleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		controllerutil.AddFinalizer(iamRole, iamRoleFinalizer)
 		err := r.Update(ctx, iamRole)
 		if err != nil {
-			log.Error(err, "Failed to update AWSIAMRole with finalizer")
+			log.Error(err, "Failed to update IamRole with finalizer")
 			return ctrl.Result{}, err
 		}
 	}
