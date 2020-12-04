@@ -3,8 +3,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"os"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -16,7 +14,7 @@ import (
 // DeleteRole deletes AWS IAM Role
 func DeleteRole(ctx context.Context, roleName string) error {
 	sess := session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(os.Getenv("AWS_REGION"))},
+		Region: aws.String(awsRegion)},
 	))
 
 	svc := iam.New(sess)
@@ -35,7 +33,7 @@ func DeleteRole(ctx context.Context, roleName string) error {
 // CreateRole creates AWS IAM Role
 func CreateRole(ctx context.Context, iamRole *iamv1alpha1.IamRole) error {
 	sess := session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(os.Getenv("AWS_REGION"))},
+		Region: aws.String(awsRegion)},
 	))
 
 	svc := iam.New(sess)
@@ -46,9 +44,6 @@ func CreateRole(ctx context.Context, iamRole *iamv1alpha1.IamRole) error {
 
 	if _, err := svc.GetRole(input); err != nil {
 		log.Info("Creating IAM role on AWS")
-
-		awsAccountID := os.Getenv("AWS_ACCOUNT_ID")
-		openIDIssuer := strings.TrimPrefix(os.Getenv("OPENID_ISSUER_URL"), "https://")
 
 		assumeRolePolicyDocument := fmt.Sprintf(`{
 			"Version": "2012-10-17",
