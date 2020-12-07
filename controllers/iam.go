@@ -71,8 +71,6 @@ func (r *IamRoleReconciler) CreateRole(ctx context.Context, log logr.Logger, iam
 			log.Error(err, "Error updating IamRole status")
 			return err
 		}
-
-		return nil
 	}
 
 	return nil
