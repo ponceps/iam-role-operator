@@ -6,14 +6,14 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/go-logr/logr"
 	iamv1alpha1 "github.com/iclinic/iam-role-operator/api/v1alpha1"
-	"github.com/prometheus/common/log"
 )
 
 var svc = iam.New(awsSession)
 
 // DeleteRole deletes AWS IAM Role
-func (r *IamRoleReconciler) DeleteRole(iamRole *iamv1alpha1.IamRole) error {
+func (r *IamRoleReconciler) DeleteRole(log logr.Logger, iamRole *iamv1alpha1.IamRole) error {
 	if _, err := svc.DeleteRole(&iam.DeleteRoleInput{RoleName: aws.String(iamRole.ObjectMeta.Name)}); err != nil {
 		log.Error(err, "Error deleting role")
 		return err
@@ -25,7 +25,7 @@ func (r *IamRoleReconciler) DeleteRole(iamRole *iamv1alpha1.IamRole) error {
 }
 
 // CreateRole creates AWS IAM Role
-func (r *IamRoleReconciler) CreateRole(ctx context.Context, iamRole *iamv1alpha1.IamRole) error {
+func (r *IamRoleReconciler) CreateRole(ctx context.Context, log logr.Logger, iamRole *iamv1alpha1.IamRole) error {
 	input := &iam.GetRoleInput{
 		RoleName: aws.String(iamRole.Name),
 	}

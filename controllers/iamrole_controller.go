@@ -70,7 +70,7 @@ func (r *IamRoleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		log.Info("IamRole marked for deletion. Running finalizers.")
 		if contains(iamRole.GetFinalizers(), iamRoleFinalizer) {
 			// Firt delete role
-			if err := r.DeleteRole(iamRole); err != nil {
+			if err := r.DeleteRole(log, iamRole); err != nil {
 				return ctrl.Result{}, err
 			}
 
@@ -95,7 +95,7 @@ func (r *IamRoleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// Create role if not exists
-	if err := r.CreateRole(ctx, iamRole); err != nil {
+	if err := r.CreateRole(ctx, log, iamRole); err != nil {
 		log.Error(err, "Failed to create IamRole")
 		return ctrl.Result{}, err
 	}
