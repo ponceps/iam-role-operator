@@ -13,9 +13,8 @@ import (
 var svc = iam.New(awsSession)
 
 // DeleteRole deletes AWS IAM Role
-func DeleteRole(ctx context.Context, roleName string) error {
-	// Delete role
-	if _, err := svc.DeleteRole(&iam.DeleteRoleInput{RoleName: aws.String(roleName)}); err != nil {
+func (r *IamRoleReconciler) DeleteRole(iamRole *iamv1alpha1.IamRole) error {
+	if _, err := svc.DeleteRole(&iam.DeleteRoleInput{RoleName: aws.String(iamRole.ObjectMeta.Name)}); err != nil {
 		log.Error(err, "Error deleting role")
 		return err
 	}
@@ -26,7 +25,7 @@ func DeleteRole(ctx context.Context, roleName string) error {
 }
 
 // CreateRole creates AWS IAM Role
-func CreateRole(ctx context.Context, iamRole *iamv1alpha1.IamRole) error {
+func (r *IamRoleReconciler) CreateRole(ctx context.Context, iamRole *iamv1alpha1.IamRole) error {
 	input := &iam.GetRoleInput{
 		RoleName: aws.String(iamRole.Name),
 	}
@@ -51,19 +50,26 @@ func CreateRole(ctx context.Context, iamRole *iamv1alpha1.IamRole) error {
 				}
 			}
 			]
-		}`, awsAccountID, openIDIssuer, openIDIssuer, iamRole.Namespace, "*")
+		}`, awsAccountID, openIDIssuer, openIDIssuer, iamRole.Namespace, iamRole.Spec.ServiceAccount)
 
 		params := &iam.CreateRoleInput{
 			AssumeRolePolicyDocument: aws.String(assumeRolePolicyDocument),
 			RoleName:                 aws.String(iamRole.Name),
 		}
 
-		if _, err = svc.CreateRole(params); err != nil {
+		result, err := svc.CreateRole(params)
+		if err != nil {
 			log.Error(err, "Error creating role on AWS")
 			return err
 		}
 
 		log.Info("Role was created", "role", iamRole.Name)
+
+		// Update IamRole status
+		iamRole.Status.Arn = *result.Role.Arn
+		err = r.Status().Update(ctx, iamRole)
+
+		return nil
 	}
 
 	return nil

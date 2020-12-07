@@ -27,12 +27,15 @@ import (
 type IamRoleSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	ServiceAccount string `json:"serviceAccount"`
 }
 
 // IamRoleStatus defines the observed state of IamRole
 type IamRoleStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Arn string `json:"arn"`
 }
 
 // +kubebuilder:object:root=true

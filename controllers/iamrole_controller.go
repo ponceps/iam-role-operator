@@ -18,10 +18,15 @@ package controllers
 
 import (
 	"context"
+	"reflect"
 
 	"github.com/go-logr/logr"
+	"github.com/prometheus/common/log"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -41,6 +46,7 @@ const iamRoleFinalizer = "iam.ponceps.com/finalizer"
 
 // +kubebuilder:rbac:groups=iam.iclinic.com.br,resources=iamroles,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=iam.iclinic.com.br,resources=iamroles/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=core,resources=serviceaccounts,verbs=get;list;watch;create;update
 
 func (r *IamRoleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
@@ -65,9 +71,10 @@ func (r *IamRoleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		log.Info("IamRole marked for deletion. Running finalizers.")
 		if contains(iamRole.GetFinalizers(), iamRoleFinalizer) {
 			// Firt delete role
-			if err := DeleteRole(ctx, iamRole.ObjectMeta.Name); err != nil {
+			if err := r.DeleteRole(iamRole); err != nil {
 				return ctrl.Result{}, err
 			}
+
 			// Remove finalizer once the finalizer logic has run
 			controllerutil.RemoveFinalizer(iamRole, iamRoleFinalizer)
 			if err := r.Update(ctx, iamRole); err != nil {
@@ -89,12 +96,55 @@ func (r *IamRoleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// Create role if not exists
-	if err := CreateRole(ctx, iamRole); err != nil {
+	if err := r.CreateRole(ctx, iamRole); err != nil {
 		log.Error(err, "Failed to create IamRole")
 		return ctrl.Result{}, err
 	}
 
+	// Create or update service account
+	if err := r.CreateOrUpdateServiceAccount(ctx, iamRole); err != nil {
+		log.Error(err, "Error to update ServiceAccount")
+		return ctrl.Result{}, err
+	}
+
 	return ctrl.Result{}, nil
+}
+
+// CreateOrUpdateServiceAccount creates or updates service account
+func (r *IamRoleReconciler) CreateOrUpdateServiceAccount(ctx context.Context, iamRole *iamv1alpha1.IamRole) error {
+
+	sa := &corev1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      iamRole.Spec.ServiceAccount,
+			Namespace: iamRole.Namespace,
+			Annotations: map[string]string{
+				"eks.amazonaws.com/role-arn": iamRole.Status.Arn,
+			},
+		},
+	}
+
+	foundServiceAccount := &corev1.ServiceAccount{}
+	findServiceAccount := types.NamespacedName{
+		Name:      iamRole.Spec.ServiceAccount,
+		Namespace: iamRole.Namespace,
+	}
+
+	if err := r.Get(ctx, findServiceAccount, foundServiceAccount); err != nil && errors.IsNotFound(err) {
+		if err := r.Create(ctx, sa); err != nil {
+			log.Error(err, "Failed to create ServiceAccount")
+			return err
+		}
+	}
+
+	if !reflect.DeepEqual(sa.Annotations, foundServiceAccount.Annotations) {
+		foundServiceAccount.Annotations = sa.Annotations
+		log.Info("Updating service account")
+		if err := r.Update(ctx, foundServiceAccount); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (r *IamRoleReconciler) SetupWithManager(mgr ctrl.Manager) error {
