@@ -21,7 +21,6 @@ import (
 	"reflect"
 
 	"github.com/go-logr/logr"
-	"github.com/prometheus/common/log"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -102,7 +101,7 @@ func (r *IamRoleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// Create or update service account
-	if err := r.CreateOrUpdateServiceAccount(ctx, iamRole); err != nil {
+	if err := r.CreateOrUpdateServiceAccount(ctx, log, iamRole); err != nil {
 		log.Error(err, "Error to update ServiceAccount")
 		return ctrl.Result{}, err
 	}
@@ -111,7 +110,7 @@ func (r *IamRoleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 }
 
 // CreateOrUpdateServiceAccount creates or updates service account
-func (r *IamRoleReconciler) CreateOrUpdateServiceAccount(ctx context.Context, iamRole *iamv1alpha1.IamRole) error {
+func (r *IamRoleReconciler) CreateOrUpdateServiceAccount(ctx context.Context, log logr.Logger, iamRole *iamv1alpha1.IamRole) error {
 
 	sa := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
