@@ -67,7 +67,9 @@ func (r *IamRoleReconciler) CreateRole(ctx context.Context, iamRole *iamv1alpha1
 
 		// Update IamRole status
 		iamRole.Status.Arn = *result.Role.Arn
-		err = r.Status().Update(ctx, iamRole)
+		if err := r.Status().Update(ctx, iamRole); err != nil {
+			return err
+		}
 
 		return nil
 	}
