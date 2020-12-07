@@ -42,7 +42,7 @@ type IamRoleReconciler struct {
 }
 
 // Finalizer for our objects
-const iamRoleFinalizer = "iam.ponceps.com/finalizer"
+const iamRoleFinalizer = "iam.iclinic.com.br/finalizer"
 
 // +kubebuilder:rbac:groups=iam.iclinic.com.br,resources=iamroles,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=iam.iclinic.com.br,resources=iamroles/status,verbs=get;update;patch
