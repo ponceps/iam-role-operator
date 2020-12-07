@@ -123,23 +123,23 @@ func (r *IamRoleReconciler) CreateOrUpdateServiceAccount(ctx context.Context, ia
 		},
 	}
 
-	foundServiceAccount := &corev1.ServiceAccount{}
-	findServiceAccount := types.NamespacedName{
+	found := &corev1.ServiceAccount{}
+	findMe := types.NamespacedName{
 		Name:      iamRole.Spec.ServiceAccount,
 		Namespace: iamRole.Namespace,
 	}
 
-	if err := r.Get(ctx, findServiceAccount, foundServiceAccount); err != nil && errors.IsNotFound(err) {
+	if err := r.Get(ctx, findMe, found); err != nil && errors.IsNotFound(err) {
 		if err := r.Create(ctx, sa); err != nil {
 			log.Error(err, "Failed to create ServiceAccount")
 			return err
 		}
 	}
 
-	if !reflect.DeepEqual(sa.Annotations, foundServiceAccount.Annotations) {
-		foundServiceAccount.Annotations = sa.Annotations
+	if !reflect.DeepEqual(sa.Annotations, found.Annotations) {
+		found.Annotations = sa.Annotations
 		log.Info("Updating service account")
-		if err := r.Update(ctx, foundServiceAccount); err != nil {
+		if err := r.Update(ctx, found); err != nil {
 			return err
 		}
 	}
