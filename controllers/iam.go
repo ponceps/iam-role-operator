@@ -16,7 +16,7 @@ func (r *IamRoleReconciler) DeleteRole(iamRole *iamv1alpha1.IamRole) error {
 	log := r.Log.WithValues("role", iamRole.Name)
 
 	// Delete Managed Policies
-	if err := deleteAllManagePolicies(iamRole.Name); err != nil {
+	if err := deleteAllManagedPolicies(iamRole.Name); err != nil {
 		log.Error(err, "Error deleling managed policies")
 	}
 
@@ -130,7 +130,7 @@ func (r *IamRoleReconciler) updateManagedPolicies(iamRole *iamv1alpha1.IamRole) 
 	return nil
 }
 
-func deleteAllManagePolicies(roleName string) error {
+func deleteAllManagedPolicies(roleName string) error {
 	managedPolicies, err := svc.ListAttachedRolePolicies(&iam.ListAttachedRolePoliciesInput{
 		RoleName: aws.String(roleName),
 	})
