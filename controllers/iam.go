@@ -16,11 +16,11 @@ func (r *IamRoleReconciler) DeleteRole(iamRole *iamv1alpha1.IamRole) error {
 	log := r.Log.WithValues("role", iamRole.Name)
 
 	if _, err := svc.DeleteRole(&iam.DeleteRoleInput{RoleName: aws.String(iamRole.ObjectMeta.Name)}); err != nil {
-		log.Error(err, "Error deleting AWS IAM role from AWS")
+		log.Error(err, "Error deleting role")
 		return err
 	}
 
-	log.Info("Role deleted successfully from AWS")
+	log.Info("Role deleted successfully")
 
 	return nil
 }
@@ -62,11 +62,11 @@ func (r *IamRoleReconciler) CreateRole(ctx context.Context, iamRole *iamv1alpha1
 
 		result, err := svc.CreateRole(params)
 		if err != nil {
-			log.Error(err, "Error creating role on AWS")
+			log.Error(err, "Error creating role")
 			return err
 		}
 
-		log.Info("Role was created successfully on AWS")
+		log.Info("Role was created successfully")
 
 		// Update IamRole status
 		iamRole.Status.Arn = *result.Role.Arn
