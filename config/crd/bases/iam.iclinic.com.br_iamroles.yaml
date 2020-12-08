@@ -36,6 +36,36 @@ spec:
         spec:
           description: IamRoleSpec defines the desired state of IamRole
           properties:
+            inlinePolicies:
+              items:
+                description: InlinePolicySpec struct
+                properties:
+                  action:
+                    items:
+                      type: string
+                    maxItems: 50
+                    minItems: 1
+                    type: array
+                  effect:
+                    enum:
+                    - Allow
+                    - Deny
+                    type: string
+                  name:
+                    type: string
+                  resource:
+                    items:
+                      type: string
+                    maxItems: 10
+                    minItems: 1
+                    type: array
+                required:
+                - action
+                - effect
+                - name
+                - resource
+                type: object
+              type: array
             serviceAccount:
               type: string
           required:
