@@ -20,7 +20,7 @@ func (r *IamRoleReconciler) DeleteRole(iamRole *iamv1alpha1.IamRole) error {
 		return err
 	}
 
-	log.Info("IAM role deleted successfully from AWS")
+	log.Info("Role deleted successfully from AWS")
 
 	return nil
 }
