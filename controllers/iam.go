@@ -16,11 +16,11 @@ func (r *IamRoleReconciler) DeleteRole(iamRole *iamv1alpha1.IamRole) error {
 	log := r.Log.WithValues("role", iamRole.Name)
 
 	if _, err := svc.DeleteRole(&iam.DeleteRoleInput{RoleName: aws.String(iamRole.ObjectMeta.Name)}); err != nil {
-		log.Error(err, "Error deleting role")
+		log.Error(err, "Error deleting AWS IAM role from AWS")
 		return err
 	}
 
-	log.Info("Role deleted successfully")
+	log.Info("IAM role deleted successfully from AWS")
 
 	return nil
 }
