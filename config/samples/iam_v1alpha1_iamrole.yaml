@@ -4,3 +4,5 @@ metadata:
   name: iamrole-sample
 spec:
   serviceAccount: sample
+  managedPolicies:
+    - arn:aws:iam::aws:policy/ReadOnlyAccess

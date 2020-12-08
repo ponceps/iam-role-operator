@@ -28,7 +28,8 @@ type IamRoleSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	ServiceAccount string `json:"serviceAccount"`
+	ServiceAccount  string   `json:"serviceAccount"`
+	ManagedPolicies []string `json:"managedPolicies,omitempty"`
 }
 
 // IamRoleStatus defines the observed state of IamRole
