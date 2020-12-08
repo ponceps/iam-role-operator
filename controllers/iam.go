@@ -7,15 +7,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	iamv1alpha1 "github.com/iclinic/iam-role-operator/api/v1alpha1"
-	"github.com/prometheus/common/log"
 )
 
 var svc = iam.New(awsSession)
 
 // DeleteRole deletes AWS IAM Role
-func DeleteRole(ctx context.Context, roleName string) error {
-	// Delete role
-	if _, err := svc.DeleteRole(&iam.DeleteRoleInput{RoleName: aws.String(roleName)}); err != nil {
+func (r *IamRoleReconciler) DeleteRole(iamRole *iamv1alpha1.IamRole) error {
+	log := r.Log.WithValues("role", iamRole.Name)
+
+	if _, err := svc.DeleteRole(&iam.DeleteRoleInput{RoleName: aws.String(iamRole.ObjectMeta.Name)}); err != nil {
 		log.Error(err, "Error deleting role")
 		return err
 	}
@@ -26,7 +26,9 @@ func DeleteRole(ctx context.Context, roleName string) error {
 }
 
 // CreateRole creates AWS IAM Role
-func CreateRole(ctx context.Context, iamRole *iamv1alpha1.IamRole) error {
+func (r *IamRoleReconciler) CreateRole(ctx context.Context, iamRole *iamv1alpha1.IamRole) error {
+	log := r.Log.WithValues("role", iamRole.Name)
+
 	input := &iam.GetRoleInput{
 		RoleName: aws.String(iamRole.Name),
 	}
@@ -51,19 +53,27 @@ func CreateRole(ctx context.Context, iamRole *iamv1alpha1.IamRole) error {
 				}
 			}
 			]
-		}`, awsAccountID, openIDIssuer, openIDIssuer, iamRole.Namespace, "*")
+		}`, awsAccountID, openIDIssuer, openIDIssuer, iamRole.Namespace, iamRole.Spec.ServiceAccount)
 
 		params := &iam.CreateRoleInput{
 			AssumeRolePolicyDocument: aws.String(assumeRolePolicyDocument),
 			RoleName:                 aws.String(iamRole.Name),
 		}
 
-		if _, err = svc.CreateRole(params); err != nil {
-			log.Error(err, "Error creating role on AWS")
+		result, err := svc.CreateRole(params)
+		if err != nil {
+			log.Error(err, "Error creating role")
 			return err
 		}
 
-		log.Info("Role was created", "role", iamRole.Name)
+		log.Info("Role was created successfully")
+
+		// Update IamRole status
+		iamRole.Status.Arn = *result.Role.Arn
+		if err := r.Status().Update(ctx, iamRole); err != nil {
+			log.Error(err, "Error updating IamRole status")
+			return err
+		}
 	}
 
 	return nil

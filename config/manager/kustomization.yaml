@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: iclinic/iam-role-operator
-  newTag: v0.1.3
+  newTag: v0.1.0
