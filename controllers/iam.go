@@ -6,26 +6,29 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/go-logr/logr"
 	iamv1alpha1 "github.com/iclinic/iam-role-operator/api/v1alpha1"
 )
 
 var svc = iam.New(awsSession)
 
 // DeleteRole deletes AWS IAM Role
-func (r *IamRoleReconciler) DeleteRole(log logr.Logger, iamRole *iamv1alpha1.IamRole) error {
+func (r *IamRoleReconciler) DeleteRole(iamRole *iamv1alpha1.IamRole) error {
+	log := r.Log.WithValues("role", iamRole.Name)
+
 	if _, err := svc.DeleteRole(&iam.DeleteRoleInput{RoleName: aws.String(iamRole.ObjectMeta.Name)}); err != nil {
-		log.Error(err, "Error deleting role")
+		log.Error(err, "Error deleting AWS IAM role from AWS")
 		return err
 	}
 
-	log.Info("Role deleted successfully")
+	log.Info("IAM role deleted successfully from AWS")
 
 	return nil
 }
 
 // CreateRole creates AWS IAM Role
-func (r *IamRoleReconciler) CreateRole(ctx context.Context, log logr.Logger, iamRole *iamv1alpha1.IamRole) error {
+func (r *IamRoleReconciler) CreateRole(ctx context.Context, iamRole *iamv1alpha1.IamRole) error {
+	log := r.Log.WithValues("role", iamRole.Name)
+
 	input := &iam.GetRoleInput{
 		RoleName: aws.String(iamRole.Name),
 	}
@@ -63,7 +66,7 @@ func (r *IamRoleReconciler) CreateRole(ctx context.Context, log logr.Logger, iam
 			return err
 		}
 
-		log.Info("Role was created", "role", iamRole.Name)
+		log.Info("Role was created successfully on AWS")
 
 		// Update IamRole status
 		iamRole.Status.Arn = *result.Role.Arn
