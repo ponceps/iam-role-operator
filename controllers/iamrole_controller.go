@@ -99,6 +99,12 @@ func (r *IamRoleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 
+	// Update managed policies
+	if err := r.updateManagedPolicies(iamRole); err != nil {
+		log.Error(err, "Failed to update managed policies")
+		return ctrl.Result{}, err
+	}
+
 	// Create or update service account
 	if err := r.CreateOrUpdateServiceAccount(ctx, iamRole); err != nil {
 		log.Error(err, "Error to update service account", "ServiceAccount", iamRole.Spec.ServiceAccount)
