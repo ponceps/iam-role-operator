@@ -28,7 +28,24 @@ type IamRoleSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	ServiceAccount string `json:"serviceAccount"`
+	ServiceAccount string             `json:"serviceAccount"`
+	InlinePolicies []InlinePolicySpec `json:"inlinePolicies,omitempty"`
+}
+
+// InlinePolicySpec struct
+type InlinePolicySpec struct {
+	Name string `json:"name"`
+
+	// +kubebuilder:validation:Enum=Allow;Deny
+	Effect string `json:"effect"`
+
+	// +kubebuilder:validation:MaxItems=50
+	// +kubebuilder:validation:MinItems=1
+	Action []string `json:"action"`
+
+	// +kubebuilder:validation:MaxItems=10
+	// +kubebuilder:validation:MinItems=1
+	Resource []string `json:"resource"`
 }
 
 // IamRoleStatus defines the observed state of IamRole
